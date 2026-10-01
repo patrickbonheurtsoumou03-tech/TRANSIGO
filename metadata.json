@@ -1,0 +1,6 @@
+{
+  "name": "TRANSIGO — Brazzaville Mobility OS",
+  "description": "Plateforme intelligente de transport urbain et de mobilité multimodale pour l'agglomération de Brazzaville. Télémétrie GPS en direct, billettique dématérialisée, régulation de lignes et gestion de flotte.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

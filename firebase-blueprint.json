@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile document storing basic identity and role information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "format": "email", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "enum": ["passager", "chauffeur", "transporteur", "administrateur"] },
+        "phone": { "type": "string", "maxLength": 32 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "role", "createdAt"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "Vehicle registered on the TRANSIGO platform",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "plate": { "type": "string", "maxLength": 32 },
+        "mode": { "type": "string", "enum": ["bus", "coaster", "minibus", "taxi"] },
+        "operatorName": { "type": "string", "maxLength": 128 },
+        "lineId": { "type": "string", "maxLength": 128 },
+        "vehicleStatus": { "type": "string", "enum": ["REGISTERED", "ACTIVE", "INACTIVE", "MAINTENANCE", "SUSPENDED", "RETIRED"] },
+        "serviceStatus": { "type": "string", "enum": ["NOT_STARTED", "STARTING", "ACTIVE", "PAUSED", "ENDING", "COMPLETED", "CANCELLED"] },
+        "driverId": { "type": "string", "maxLength": 128 },
+        "capacitySeated": { "type": "number" },
+        "capacityStanding": { "type": "number" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "speed": { "type": "number" },
+        "heading": { "type": "number" },
+        "lastGpsTimestamp": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "plate", "mode", "operatorName", "vehicleStatus"]
+    },
+    "Route": {
+      "title": "Route",
+      "description": "Public transit line/route definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "code": { "type": "string", "maxLength": 32 },
+        "mode": { "type": "string", "enum": ["bus", "coaster", "minibus", "taxi"] },
+        "origin": { "type": "string", "maxLength": 128 },
+        "destination": { "type": "string", "maxLength": 128 },
+        "color": { "type": "string", "maxLength": 16 },
+        "stopIds": { "type": "string", "maxLength": 2048 },
+        "fareAmount": { "type": "number" },
+        "fareCurrency": { "type": "string", "maxLength": 8 },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "code", "mode"]
+    },
+    "Stop": {
+      "title": "Stop",
+      "description": "Transit stop or boarding point",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "commune": { "type": "string", "maxLength": 64 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "type": { "type": "string", "enum": ["bus_stop", "terminal", "boarding_point"] }
+      },
+      "required": ["id", "name", "latitude", "longitude"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "Reported incident or traffic disruption",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "authorId": { "type": "string", "maxLength": 128 },
+        "type": { "type": "string", "maxLength": 64 },
+        "title": { "type": "string", "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 1024 },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "status": { "type": "string", "enum": ["REPORTED", "VERIFIED", "RESOLVED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "authorId", "type", "title", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles partitioned by Auth UID"
+    },
+    "/vehicles/{vehicleId}": {
+      "schema": "Vehicle",
+      "description": "Transit fleet vehicles"
+    },
+    "/routes/{routeId}": {
+      "schema": "Route",
+      "description": "Transit routes and itineraries"
+    },
+    "/stops/{stopId}": {
+      "schema": "Stop",
+      "description": "Transit stops and stations"
+    },
+    "/incidents/{incidentId}": {
+      "schema": "Incident",
+      "description": "User and driver reported incidents"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common hardened helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'patrickbonheurtsoumou03@gmail.com'
+      );
+    }
+
+    // User profile collection
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isValidId(userId) &&
+        incoming().id == userId &&
+        incoming().email is string && incoming().email.size() <= 256 &&
+        incoming().role in ['passager', 'chauffeur', 'transporteur', 'administrateur'];
+      allow update: if (isOwner(userId) || isAdmin()) &&
+        incoming().id == existing().id &&
+        (!('email' in incoming()) || incoming().email == existing().email);
+      allow delete: if isAdmin();
+    }
+
+    // Admins collection
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Transit Fleet Vehicles
+    match /vehicles/{vehicleId} {
+      allow get, list: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (existing().driverId == request.auth.uid && incoming().id == existing().id)
+      );
+    }
+
+    // Routes / Lines
+    match /routes/{routeId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // Stops and Stations
+    match /stops/{stopId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // Incidents
+    match /incidents/{incidentId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isValidId(incidentId) &&
+        incoming().authorId == request.auth.uid &&
+        incoming().title is string && incoming().title.size() <= 128;
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (existing().authorId == request.auth.uid && incoming().authorId == existing().authorId)
+      );
+      allow delete: if isAdmin() || (isSignedIn() && existing().authorId == request.auth.uid);
+    }
+  }
+}
